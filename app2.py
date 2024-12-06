@@ -2,17 +2,24 @@ import streamlit as st
 from transformers import pipeline, T5ForConditionalGeneration, T5Tokenizer
 
 
-# Load Translation Pipeline
-def load_translation_pipeline():
-    # Use the pre-trained translation model for Korean to English
-    return pipeline("translation", model="Helsinki-NLP/opus-mt-ko-en")
+# Load Translation Pipeline (for Korean to English and vice versa)
+def load_translation_pipeline(src_lang, tgt_lang):
+    if src_lang == "ko" and tgt_lang == "en":
+        return pipeline("translation", model="Helsinki-NLP/opus-mt-ko-en")
+    elif src_lang == "en" and tgt_lang == "ko":
+        return pipeline("translation", model="Helsinki-NLP/opus-mt-en-ko")
+    else:
+        raise ValueError("Unsupported language pair")
 
 
 # Translate Text
-def translate_text(text):
-    translator = load_translation_pipeline()
-    translation = translator(text, max_length=512)
-    return translation[0]["translation_text"]
+def translate_text(text, src_lang, tgt_lang):
+    try:
+        translator = load_translation_pipeline(src_lang, tgt_lang)
+        translation = translator(text, max_length=512)
+        return translation[0]["translation_text"]
+    except Exception as e:
+        return f"Error during translation: {e}"
 
 
 # Load Summarization Model
@@ -26,19 +33,22 @@ def load_summarization_model():
 
 # Summarize Text
 def summarize_text(text):
-    tokenizer, model = load_summarization_model()
-    input_ids = tokenizer.encode(
-        "summarize: " + text, return_tensors="pt", max_length=512, truncation=True
-    )
-    summary_ids = model.generate(
-        input_ids,
-        max_length=150,
-        min_length=40,
-        length_penalty=2.0,
-        num_beams=4,
-        early_stopping=True,
-    )
-    return tokenizer.decode(summary_ids[0], skip_special_tokens=True)
+    try:
+        tokenizer, model = load_summarization_model()
+        input_ids = tokenizer.encode(
+            "summarize: " + text, return_tensors="pt", max_length=512, truncation=True
+        )
+        summary_ids = model.generate(
+            input_ids,
+            max_length=150,
+            min_length=40,
+            length_penalty=2.0,
+            num_beams=4,
+            early_stopping=True,
+        )
+        return tokenizer.decode(summary_ids[0], skip_special_tokens=True)
+    except Exception as e:
+        return f"Error during summarization: {e}"
 
 
 # Streamlit App
@@ -57,18 +67,12 @@ tgt_lang = st.selectbox("Select Target Language", ["en", "ko"])  # English or Ko
 
 if st.button("Translate"):
     if text_to_translate:
-        if src_lang == "ko" and tgt_lang == "en":
-            translation = translate_text(text_to_translate)
-        elif src_lang == "en" and tgt_lang == "ko":
-            # Use a pipeline for English to Korean translation
-            translator = pipeline("translation", model="Helsinki-NLP/opus-mt-en-ko")
-            translation = translator(text_to_translate, max_length=512)[0][
-                "translation_text"
-            ]
-        else:
-            st.warning("Unsupported language pair.")
-        st.subheader("Translated Text:")
-        st.write(translation)
+        try:
+            translation = translate_text(text_to_translate, src_lang, tgt_lang)
+            st.subheader("Translated Text:")
+            st.write(translation)
+        except ValueError as e:
+            st.warning(str(e))
     else:
         st.warning("Please enter text to translate.")
 
