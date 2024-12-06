@@ -1,10 +1,9 @@
 torch
-torchtext
-spacy
-konlpy  
+transformers
 streamlit
+sacremoses
+sentencepiece
+spacy
 nltk
 googletrans
-sentencepiece
-transformers
-sacremoses
+konlpy
