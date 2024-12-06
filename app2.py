@@ -1,23 +1,25 @@
 import streamlit as st
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, T5ForConditionalGeneration, T5Tokenizer
+from transformers import (
+    MarianMTModel,
+    MarianTokenizer,
+    T5ForConditionalGeneration,
+    T5Tokenizer,
+)
 
 
 # Load Translation Model
 def load_translation_model(src_lang, tgt_lang):
-    model_name = f"Helsinki-NLP/opus-mt-tc-big-{src_lang}-{tgt_lang}"
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
-    model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
+    model_name = f"Helsinki-NLP/opus-mt-{src_lang}-{tgt_lang}"
+    tokenizer = MarianTokenizer.from_pretrained(model_name)
+    model = MarianMTModel.from_pretrained(model_name)
     return tokenizer, model
 
 
 # Translate Text
 def translate_text(text, src_lang, tgt_lang):
     tokenizer, model = load_translation_model(src_lang, tgt_lang)
-    # Tokenize the input text and convert to tensor format
-    inputs = tokenizer(text, return_tensors="pt", padding=True, truncation=True)
-    # Generate translation using the model
-    translated_tokens = model.generate(inputs["input_ids"], max_length=512)
-    # Decode the generated tokens back to text
+    tokenized_text = tokenizer(text, return_tensors="pt", truncation=True)
+    translated_tokens = model.generate(**tokenized_text)
     return tokenizer.decode(translated_tokens[0], skip_special_tokens=True)
 
 
@@ -53,7 +55,7 @@ st.write(
     "This app provides free text translation and summarization using open-source models."
 )
 
-# Input Section for Translation
+# Input Section
 st.header("Translation")
 text_to_translate = st.text_area("Enter text to translate:")
 src_lang = st.text_input("Source Language Code (e.g., 'en'):", value="en")
@@ -67,7 +69,6 @@ if st.button("Translate"):
     else:
         st.warning("Please enter text to translate.")
 
-# Input Section for Summarization
 st.header("Summarization")
 text_to_summarize = st.text_area("Enter text to summarize:")
 
