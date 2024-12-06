@@ -1,19 +1,26 @@
 import streamlit as st
-from transformers import pipeline, T5ForConditionalGeneration, T5Tokenizer
+from transformers import pipeline, MarianMTModel, MarianTokenizer, T5ForConditionalGeneration, T5Tokenizer
 
-# Load Translation Pipeline
+# Load Translation Pipeline (Using MarianMT for English-Korean translation)
 def load_translation_pipeline(src_lang, tgt_lang):
-    # Use Hugging Face's pipeline to load the model for translation
+    # Use the MarianMT model from Hugging Face for translation
     model_name = f"Helsinki-NLP/opus-mt-{src_lang}-{tgt_lang}"
-    return pipeline("translation", model=model_name)
+    model = MarianMTModel.from_pretrained(model_name)
+    tokenizer = MarianTokenizer.from_pretrained(model_name)
+    return model, tokenizer
 
 # Translate Text
 def translate_text(text, src_lang, tgt_lang):
-    translator = load_translation_pipeline(src_lang, tgt_lang)
-    translation = translator(text, max_length=512)
-    return translation[0]["translation_text"]
+    model, tokenizer = load_translation_pipeline(src_lang, tgt_lang)
+    # Tokenize the text
+    tokenized_text = tokenizer(text, return_tensors="pt", truncation=True)
+    # Generate translation
+    translated_tokens = model.generate(**tokenized_text)
+    # Decode the translated tokens
+    translated_text = tokenizer.decode(translated_tokens[0], skip_special_tokens=True)
+    return translated_text
 
-# Load Summarization Model
+# Load Summarization Model (T5)
 @st.cache_resource
 def load_summarization_model():
     model_name = "t5-small"
@@ -53,6 +60,7 @@ tgt_lang = st.selectbox("Select Target Language", ["en", "ko"])  # English or Ko
 
 if st.button("Translate"):
     if text_to_translate:
+        # Use the translation function to translate the text
         translation = translate_text(text_to_translate, src_lang, tgt_lang)
         st.subheader("Translated Text:")
         st.write(translation)
