@@ -1,9 +1,10 @@
 import streamlit as st
-from transformers import MarianMTModel, MarianTokenizer, T5ForConditionalGeneration, T5Tokenizer
+from transformers import MarianMTModel, MarianTokenizer, pipeline, T5ForConditionalGeneration, T5Tokenizer
 
-# Load Translation Pipeline (Using MarianMT for English-Korean translation)
+# Load Translation Pipeline (Using tunib/electra-ko-en-base for Korean-English translation)
 def load_translation_pipeline(src_lang, tgt_lang):
-    model_name = f"Helsinki-NLP/opus-mt-{src_lang}-{tgt_lang}"
+    # Use the ELECTRA model from Hugging Face for translation
+    model_name = "tunib/electra-ko-en-base"
     model = MarianMTModel.from_pretrained(model_name)
     tokenizer = MarianTokenizer.from_pretrained(model_name)
     return model, tokenizer
@@ -11,8 +12,11 @@ def load_translation_pipeline(src_lang, tgt_lang):
 # Translate Text
 def translate_text(text, src_lang, tgt_lang):
     model, tokenizer = load_translation_pipeline(src_lang, tgt_lang)
+    # Tokenize the text
     tokenized_text = tokenizer(text, return_tensors="pt", truncation=True)
+    # Generate translation
     translated_tokens = model.generate(**tokenized_text)
+    # Decode the translated tokens
     translated_text = tokenizer.decode(translated_tokens[0], skip_special_tokens=True)
     return translated_text
 
@@ -27,13 +31,24 @@ def load_summarization_model():
 # Summarize Text
 def summarize_text(text):
     tokenizer, model = load_summarization_model()
-    input_ids = tokenizer.encode("summarize: " + text, return_tensors="pt", max_length=512, truncation=True)
-    summary_ids = model.generate(input_ids, max_length=150, min_length=40, length_penalty=2.0, num_beams=4, early_stopping=True)
+    input_ids = tokenizer.encode(
+        "summarize: " + text, return_tensors="pt", max_length=512, truncation=True
+    )
+    summary_ids = model.generate(
+        input_ids,
+        max_length=150,
+        min_length=40,
+        length_penalty=2.0,
+        num_beams=4,
+        early_stopping=True,
+    )
     return tokenizer.decode(summary_ids[0], skip_special_tokens=True)
 
 # Streamlit App
 st.title("Machine Translation and Summarization App")
-st.write("This app provides free text translation and summarization using open-source models.")
+st.write(
+    "This app provides free text translation and summarization using open-source models."
+)
 
 # Input Section for Translation
 st.header("Translation")
@@ -45,13 +60,10 @@ tgt_lang = st.selectbox("Select Target Language", ["en", "ko"])  # English or Ko
 
 if st.button("Translate"):
     if text_to_translate:
-        # Translate text
-        try:
-            translation = translate_text(text_to_translate, src_lang, tgt_lang)
-            st.subheader("Translated Text:")
-            st.write(translation)
-        except Exception as e:
-            st.error(f"Error translating text: {e}")
+        # Use the translation function to translate the text
+        translation = translate_text(text_to_translate, src_lang, tgt_lang)
+        st.subheader("Translated Text:")
+        st.write(translation)
     else:
         st.warning("Please enter text to translate.")
 
