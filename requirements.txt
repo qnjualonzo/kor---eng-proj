@@ -1,7 +1,7 @@
 aiohttp==3.11.10
 transformers==4.21.0
 torch==2.5.1
-torchvision==0.15.1
+torchvision==0.20.1  # Update this version to the latest available
 sentence-transformers==2.2.0
 googletrans==3.1.0a0
 streamlit
