@@ -1,13 +1,4 @@
-pip
-torch
-transformers
 streamlit
-sacremoses
+transformers
+torch
 sentencepiece
-spacy
-nltk
-googletrans
-konlpy
-tokenizers
-torchvision
-torchaudio
