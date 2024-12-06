@@ -1,19 +1,17 @@
 import streamlit as st
 from transformers import (
-    MarianMTModel,
-    MarianTokenizer,
+    AutoModelForSeq2SeqLM,
+    AutoTokenizer,
     T5ForConditionalGeneration,
     T5Tokenizer,
 )
 
-
-# Load Translation Model
+# Load Translation Model using AutoModelForSeq2SeqLM
 def load_translation_model(src_lang, tgt_lang):
     model_name = f"Helsinki-NLP/opus-mt-{src_lang}-{tgt_lang}"
-    tokenizer = MarianTokenizer.from_pretrained(model_name)
-    model = MarianMTModel.from_pretrained(model_name)
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
     return tokenizer, model
-
 
 # Translate Text
 def translate_text(text, src_lang, tgt_lang):
@@ -22,7 +20,6 @@ def translate_text(text, src_lang, tgt_lang):
     translated_tokens = model.generate(**tokenized_text)
     return tokenizer.decode(translated_tokens[0], skip_special_tokens=True)
 
-
 # Load Summarization Model
 @st.cache_resource
 def load_summarization_model():
@@ -30,7 +27,6 @@ def load_summarization_model():
     tokenizer = T5Tokenizer.from_pretrained(model_name)
     model = T5ForConditionalGeneration.from_pretrained(model_name)
     return tokenizer, model
-
 
 # Summarize Text
 def summarize_text(text):
@@ -47,7 +43,6 @@ def summarize_text(text):
         early_stopping=True,
     )
     return tokenizer.decode(summary_ids[0], skip_special_tokens=True)
-
 
 # Streamlit App
 st.title("Machine Translation and Summarization App")
