@@ -1,5 +1,9 @@
 import streamlit as st
 from transformers import pipeline, T5ForConditionalGeneration, T5Tokenizer
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+
+tokenizer = AutoTokenizer.from_pretrained("Helsinki-NLP/opus-mt-ko-en")
+model = AutoModelForSeq2SeqLM.from_pretrained("Helsinki-NLP/opus-mt-ko-en")
 
 
 # Load Translation Pipeline (for Korean to English and vice versa)
