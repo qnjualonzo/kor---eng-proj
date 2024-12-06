@@ -1,10 +1,11 @@
 import streamlit as st
-from transformers import MarianMTModel, MarianTokenizer, pipeline, T5ForConditionalGeneration, T5Tokenizer
+from transformers import MarianMTModel, MarianTokenizer, T5ForConditionalGeneration, T5Tokenizer
 
-# Load Translation Pipeline (Using tunib/electra-ko-en-base for Korean-English translation)
+# Load Translation Pipeline (Using MarianMT for English-Korean translation)
+@st.cache_resource
 def load_translation_pipeline(src_lang, tgt_lang):
-    # Use the ELECTRA model from Hugging Face for translation
-    model_name = "tunib/electra-ko-en-base"
+    # Use the MarianMT model from Hugging Face for translation
+    model_name = f"Helsinki-NLP/opus-mt-{src_lang}-{tgt_lang}"  # Ensure the model exists on Hugging Face
     model = MarianMTModel.from_pretrained(model_name)
     tokenizer = MarianTokenizer.from_pretrained(model_name)
     return model, tokenizer
